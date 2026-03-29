@@ -2,7 +2,7 @@ import { useContext, useMemo, useState } from "react";
 import { mockResources } from "../data/mockresources";
 import ResourceCard from "../components/ResourceCard";
 import { UserContext } from "../context/UserContext";
-import "./Resources.css";
+import "./resources.css";
 
 const tabs = ["All", "Biology", "Physics", "CARS", "Organic Chem", "Strategy"];
 
@@ -60,11 +60,12 @@ function Resources() {
         </div>
       ) : null}
 
-      <div className="tab-row">
+      <div className="filter-bar">
         {tabs.map((tab) => (
           <button
             key={tab}
-            className={activeTab === tab ? "tab-btn active" : "tab-btn"}
+            type="button"
+            className={`filter-chip ${activeTab === tab ? "active" : ""}`}
             onClick={() => setActiveTab(tab)}
           >
             {tab}
@@ -72,11 +73,18 @@ function Resources() {
         ))}
       </div>
 
-      <div className="results-grid">
-        {filteredResources.map((resource) => (
-          <ResourceCard key={resource.id} resource={resource} />
-        ))}
-      </div>
+      {filteredResources.length === 0 ? (
+        <div className="empty-state">
+          <h3>No resources found</h3>
+          <p>Try switching tabs or updating the student profile.</p>
+        </div>
+      ) : (
+        <div className="results-grid fade-in">
+          {filteredResources.map((resource) => (
+            <ResourceCard key={resource.id} resource={resource} />
+          ))}
+        </div>
+      )}
     </div>
   );
 }
