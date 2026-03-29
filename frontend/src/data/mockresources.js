@@ -1,0 +1,38 @@
+export const mockResources = [
+    {
+      id: 1,
+      title: "MCAT Biology High-Yield Review",
+      type: "Video",
+      level: "Intermediate",
+      reason: "Good for retakers who need to quickly rebuild biology fundamentals.",
+      topic: "Biology",
+      link: "#",
+    },
+    {
+      id: 2,
+      title: "CARS Daily Passage Drill",
+      type: "Practice",
+      level: "Advanced",
+      reason: "Best for students who already know content but need consistency in reading.",
+      topic: "CARS",
+      link: "#",
+    },
+    {
+      id: 3,
+      title: "Organic Chemistry Concept Map",
+      type: "Notes",
+      level: "Beginner",
+      reason: "Helps students organize weak topics into a simple visual structure.",
+      topic: "Organic Chem",
+      link: "#",
+    },
+    {
+      id: 4,
+      title: "Full-Length MCAT Strategy Guide",
+      type: "Guide",
+      level: "Advanced",
+      reason: "Useful for retakers who want a more structured comeback plan.",
+      topic: "Strategy",
+      link: "#",
+    },
+  ];
