@@ -1,121 +1,206 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import './App.css'
+import { useState } from "react";
+import { getRecommendations } from "./services/api";
+import "./App.css";
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [form, setForm] = useState({
+    exam: "MCAT",
+    target_score: "",
+    current_score: "",
+    weak_subjects: "",
+    learning_style: "visual",
+    time_left_weeks: 8,
+    is_retaker: true,
+  });
+
+  const [result, setResult] = useState(null);
+  const [loading, setLoading] = useState(false);
+
+  const handleChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setForm((prev) => ({
+      ...prev,
+      [name]: type === "checkbox" ? checked : value,
+    }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      const payload = {
+        ...form,
+        weak_subjects: form.weak_subjects
+          .split(",")
+          .map((s) => s.trim())
+          .filter(Boolean),
+        time_left_weeks: Number(form.time_left_weeks),
+      };
+
+      const data = await getRecommendations(payload);
+      setResult(data);
+    } catch (error) {
+      console.error(error);
+      alert("Backend request failed.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
+    <div className="app-shell">
+      <header className="hero">
+        <div className="hero-badge">MCAT Retaker MVP</div>
+        <h1>Personalized exam prep that gives students direction, not just resources.</h1>
+        <p>
+          Build a smarter study journey with diagnostics, recommendations, and progress tracking
+          for students who need a clear comeback plan.
+        </p>
+
+        <div className="hero-stats">
+          <div className="stat-card">
+            <span className="stat-label">Audience</span>
+            <strong>Retakers</strong>
+          </div>
+          <div className="stat-card">
+            <span className="stat-label">Focus</span>
+            <strong>MCAT</strong>
+          </div>
+          <div className="stat-card">
+            <span className="stat-label">Output</span>
+            <strong>Study plan + resources</strong>
+          </div>
         </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
+      </header>
+
+      <main className="main-grid">
+        <section className="panel">
+          <h2>Student Input</h2>
+          <p className="section-subtitle">Enter what the student knows so the system can recommend what they need.</p>
+
+          <form onSubmit={handleSubmit} className="form-grid">
+            <label>
+              Exam
+              <input name="exam" value={form.exam} onChange={handleChange} />
+            </label>
+
+            <label>
+              Target score
+              <input
+                name="target_score"
+                value={form.target_score}
+                onChange={handleChange}
+                placeholder="e.g. 515"
+              />
+            </label>
+
+            <label>
+              Current score
+              <input
+                name="current_score"
+                value={form.current_score}
+                onChange={handleChange}
+                placeholder="e.g. 498"
+              />
+            </label>
+
+            <label className="full-width">
+              Weak subjects
+              <input
+                name="weak_subjects"
+                value={form.weak_subjects}
+                onChange={handleChange}
+                placeholder="e.g. Biology, Physics, CARS"
+              />
+            </label>
+
+            <label>
+              Learning style
+              <select name="learning_style" value={form.learning_style} onChange={handleChange}>
+                <option value="visual">Visual</option>
+                <option value="reading">Reading</option>
+                <option value="practice">Practice-heavy</option>
+              </select>
+            </label>
+
+            <label>
+              Time left (weeks)
+              <input
+                type="number"
+                name="time_left_weeks"
+                value={form.time_left_weeks}
+                onChange={handleChange}
+              />
+            </label>
+
+            <label className="checkbox-row full-width">
+              <input
+                type="checkbox"
+                name="is_retaker"
+                checked={form.is_retaker}
+                onChange={handleChange}
+              />
+              Retaker
+            </label>
+
+            <button type="submit" className="primary-btn" disabled={loading}>
+              {loading ? "Generating..." : "Generate Recommendations"}
+            </button>
+          </form>
+        </section>
+
+        <aside className="panel preview-panel">
+          <h2>Live Preview</h2>
+          <p className="section-subtitle">This is what the dashboard can show before the recommendations load.</p>
+
+          <div className="preview-card">
+            <div className="preview-row">
+              <span>Current Score</span>
+              <strong>{form.current_score || "--"}</strong>
+            </div>
+            <div className="preview-row">
+              <span>Target Score</span>
+              <strong>{form.target_score || "--"}</strong>
+            </div>
+            <div className="preview-row">
+              <span>Time Left</span>
+              <strong>{form.time_left_weeks} weeks</strong>
+            </div>
+            <div className="progress-bar">
+              <div className="progress-fill" style={{ width: "42%" }} />
+            </div>
+            <p className="small-note">Progress, weak topics, and study actions can be shown here.</p>
+          </div>
+
+          <div className="mini-card">
+            <h3>Story View</h3>
+            <p>Start → gap analysis → weekly action plan → score improvement.</p>
+          </div>
+        </aside>
+      </main>
+
+      {result && (
+        <section className="panel results-panel">
+          <h2>Recommended Path</h2>
+          <p className="section-subtitle">
+            <strong>{result.profile_summary.exam}</strong> | Target: {result.profile_summary.target_score} | Current:{" "}
+            {result.profile_summary.current_score}
           </p>
-        </div>
-        <button
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
 
-      <div className="ticks"></div>
-
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+          <div className="results-grid">
+            {result.recommendations.map((item, index) => (
+              <article key={index} className="result-card">
+                <div className="result-tag">{item.type}</div>
+                <h3>{item.title}</h3>
+                <p>{item.reason}</p>
+              </article>
+            ))}
+          </div>
+        </section>
+      )}
+    </div>
+  );
 }
 
-export default App
+export default App;
